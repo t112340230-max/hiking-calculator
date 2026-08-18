@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧登山風險評估系統雛形</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #1a365d;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2b6cb0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2c5282;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .safe {
+            background-color: #e6fffa;
+            border-left: 5px solid #319795;
+        }
+        .warning {
+            background-color: #fffaf0;
+            border-left: 5px solid #dd6b20;
+        }
+        .danger {
+            background-color: #fff5f5;
+            border-left: 5px solid #e53e3e;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏔️ 登山風險評估系統</h2>
+    <p style="text-align: center; color: #666; font-size: 0.9em;">輸入您的個人數據與路線資訊，系統將自動進行安全評估。</p>
+    
+    <label for="weight">個人體重 (kg)：</label>
+    <input type="number" id="weight" placeholder="例如：70" required>
+
+    <label for="pack">預計負重 (kg)：</label>
+    <input type="number" id="pack" placeholder="例如：15" required>
+
+    <label for="distance">路線總長度 (公里)：</label>
+    <input type="number" id="distance" placeholder="例如：10" required>
+
+    <label for="elevation">垂直總爬升 (公尺)：</label>
+    <input type="number" id="elevation" placeholder="例如：800" required>
+
+    <button onclick="calculateRisk()">開始運算評估</button>
+
+    <div id="result" class="result-box">
+        <!-- 運算結果會顯示在這裡 -->
+    </div>
+</div>
+
+<script>
+    function calculateRisk() {
+        // 取得使用者輸入的值
+        let m_body = parseFloat(document.getElementById('weight').value);
+        let m_pack = parseFloat(document.getElementById('pack').value);
+        let distance = parseFloat(document.getElementById('distance').value);
+        let delta_h = parseFloat(document.getElementById('elevation').value);
+
+        // 防呆機制：確認欄位都有填寫
+        if (isNaN(m_body) || isNaN(m_pack) || isNaN(distance) || isNaN(delta_h)) {
+            alert("請填寫所有數據欄位！");
+            return;
+        }
+
+        // 1. 奈斯密斯規則 (Naismith's Rule) 計算預估時間
+        // 邏輯：平路 5km/hr + 爬升 600m/hr
+        let timeHours = (distance / 5) + (delta_h / 600);
+        
+        // 2. 耗能模組 (物理作功 + 肌肉效率 22%) 計算消耗大卡
+        // 邏輯：(體重+負重) * 9.81 * 爬升高度 / 920.48
+        let totalWeight = m_body + m_pack;
+        let calories = (totalWeight * 9.81 * delta_h) / 920.48;
+        
+        // 3. 計算負重比例 (判斷是否超載)
+        let packRatio = m_pack / m_body;
+
+        // 產生評估報告
+        let resultDiv = document.getElementById('result');
+        let reportHTML = `
+            <h3>📊 系統運算結果</h3>
+            <ul>
+                <li><b>預估耗時：</b> ${timeHours.toFixed(1)} 小時</li>
+                <li><b>預估消耗熱量：</b> ${Math.round(calories)} 大卡</li>
+                <li><b>負重體重比：</b> ${(packRatio * 100).toFixed(1)} %</li>
+            </ul>
+            <hr>
+            <h4>⚠️ 風險建議：</h4>
+        `;
+
+        // 判定風險等級與建議
+        resultDiv.className = "result-box"; // 重置 class
+
+        if (packRatio > 0.3 || calories > 3500) {
+            // 危險區間：負重超過體重30%，或單日耗能過大
+            resultDiv.classList.add("danger");
+            reportHTML += `<p><b>【高度風險】</b>您的負重比例過高或單日耗能極大，體力透支風險極高。強烈建議重新檢視裝備清單，減輕至少 ${Math.round(m_pack * 0.3)} 公斤，並確保攜帶充足的高熱量行動糧以防失溫。</p>`;
+        } else if (packRatio > 0.2 || calories > 2000) {
+            // 警告區間：負重超過體重20%，或單日耗能偏高
+            resultDiv.classList.add("warning");
+            reportHTML += `<p><b>【中度風險】</b>這趟行程將具備一定挑戰性。請確保您已攝取足夠碳水化合物，建議行程中每小時至少補充 ${Math.round(calories / timeHours / 3)} 大卡的行動糧維持體能。</p>`;
+        } else {
+            // 安全區間
+            resultDiv.classList.add("safe");
+            reportHTML += `<p><b>【狀況良好】</b>目前的負重與行程安排在合理範圍內。請保持穩定配速，祝您登山平安！</p>`;
+        }
+
+        // 顯示結果
+        resultDiv.innerHTML = reportHTML;
+        resultDiv.style.display = "block";
+    }
+</script>
+
+</body>
+</html>

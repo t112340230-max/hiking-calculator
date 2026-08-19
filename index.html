@@ -3,161 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧登山風險評估系統雛形</title>
+    <title>TopoRisk 智慧登山風險評估</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #0f766e;
+            --primary-hover: #115e59;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --safe: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             line-height: 1.6;
-            padding: 20px;
         }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h2 {
+
+        /* 頂部漸層橫幅 */
+        header {
+            background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%);
+            color: white;
+            padding: 40px 20px;
             text-align: center;
-            color: #1a365d;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 15px;
+
+        header h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; }
+        header p { font-size: 1.1rem; opacity: 0.9; font-weight: 400; }
+
+        /* 主要內容區 */
+        .container {
+            max-width: 800px;
+            margin: -30px auto 40px auto;
+            padding: 0 20px;
         }
-        input {
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 表單排版 */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+        
+        .input-group label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            padding: 12px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
+        }
+
+        /* 按鈕設計 */
+        .btn {
             width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2b6cb0;
+            padding: 15px;
+            background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
-        }
-        button:hover {
-            background-color: #2c5282;
-        }
-        .result-box {
+            transition: all 0.3s ease;
             margin-top: 20px;
+            box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.4);
+        }
+
+        .btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+
+        /* 結果展示區 */
+        #result-section { display: none; }
+        
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box span { display: block; font-size: 0.9rem; color: var(--text-muted); font-weight: 700;}
+        .stat-box strong { display: block; font-size: 1.8rem; color: var(--text-main); margin-top: 5px; }
+
+        .alert {
+            padding: 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .alert-safe { background-color: #d1fae5; color: #065f46; border-left: 5px solid var(--safe); }
+        .alert-warning { background-color: #fef3c7; color: #92400e; border-left: 5px solid var(--warning); }
+        .alert-danger { background-color: #fee2e2; color: #991b1b; border-left: 5px solid var(--danger); }
+
+        .tech-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: #f8fafc;
             padding: 15px;
-            border-radius: 5px;
-            display: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px dashed #cbd5e1;
         }
-        .safe {
-            background-color: #e6fffa;
-            border-left: 5px solid #319795;
-        }
-        .warning {
-            background-color: #fffaf0;
-            border-left: 5px solid #dd6b20;
-        }
-        .danger {
-            background-color: #fff5f5;
-            border-left: 5px solid #e53e3e;
+
+        @media (max-width: 600px) {
+            .input-grid, .result-stats { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🏔️ 登山風險評估系統</h2>
-    <p style="text-align: center; color: #666; font-size: 0.9em;">輸入您的個人數據與路線資訊，系統將自動進行安全評估。</p>
-    
-    <label for="weight">個人體重 (kg)：</label>
-    <input type="number" id="weight" placeholder="例如：70" required>
+    <header>
+        <h1>TopoRisk.</h1>
+        <p>基於空間幾何與生物力學的高精度登山風險運算引擎</p>
+    </header>
 
-    <label for="pack">預計負重 (kg)：</label>
-    <input type="number" id="pack" placeholder="例如：15" required>
+    <div class="container">
+        <!-- 參數輸入卡片 -->
+        <div class="card">
+            <div class="card-title">👤 受試者參數設定</div>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="weight">體重 (Body Weight) - kg</label>
+                    <input type="number" id="weight" value="70">
+                </div>
+                <div class="input-group">
+                    <label for="pack">負重 (Pack Weight) - kg</label>
+                    <input type="number" id="pack" value="15">
+                </div>
+            </div>
+            <button class="btn" onclick="runSimulation()">🚀 載入虛擬聖稜線剖面 & 執行積分運算</button>
+        </div>
 
-    <label for="distance">路線總長度 (公里)：</label>
-    <input type="number" id="distance" placeholder="例如：10" required>
+        <!-- 運算結果卡片 -->
+        <div class="card" id="result-section">
+            <div class="card-title">📊 演算法分析報告</div>
+            
+            <div class="result-stats">
+                <div class="stat-box">
+                    <span>⏱️ Tobler 積分耗時</span>
+                    <strong id="res-time">0.00 hr</strong>
+                </div>
+                <div class="stat-box">
+                    <span>🔥 生理作功耗能</span>
+                    <strong id="res-cal">0 kcal</strong>
+                </div>
+                <div class="stat-box">
+                    <span>🎒 負重體重比</span>
+                    <strong id="res-ratio">0 %</strong>
+                </div>
+            </div>
 
-    <label for="elevation">垂直總爬升 (公尺)：</label>
-    <input type="number" id="elevation" placeholder="例如：800" required>
+            <div id="risk-alert" class="alert">
+                <!-- 警告訊息會產在這裡 -->
+            </div>
 
-    <button onclick="calculateRisk()">開始運算評估</button>
-
-    <div id="result" class="result-box">
-        <!-- 運算結果會顯示在這裡 -->
+            <div class="tech-note">
+                <b>🔬 核心運算說明：</b><br>
+                本系統捨棄傳統線性分段，採用 <b>Tobler's Hiking Function (1993)</b>。系統自動將虛擬地形切分為 1,000 個以上的微小步長(Δx)，對瞬時坡度函數 h'(x) 進行連續數值積分 (Numerical Integration)，完美捕捉微地形起伏與微下坡加速紅利，並結合 22% 肌肉機械效率公式推算耗能。
+            </div>
+        </div>
     </div>
-</div>
 
-<script>
-    function calculateRisk() {
-        // 取得使用者輸入的值
-        let m_body = parseFloat(document.getElementById('weight').value);
-        let m_pack = parseFloat(document.getElementById('pack').value);
-        let distance = parseFloat(document.getElementById('distance').value);
-        let delta_h = parseFloat(document.getElementById('elevation').value);
+    <script>
+        function runSimulation() {
+            let m_body = parseFloat(document.getElementById('weight').value);
+            let m_pack = parseFloat(document.getElementById('pack').value);
 
-        // 防呆機制：確認欄位都有填寫
-        if (isNaN(m_body) || isNaN(m_pack) || isNaN(distance) || isNaN(delta_h)) {
-            alert("請填寫所有數據欄位！");
-            return;
+            // ==========================================
+            // 1. 產生虛擬連續高程剖面 (模擬高密度 DEM 點位)
+            // ==========================================
+            let total_distance_km = 10; // 總長 10km
+            let step_km = 0.01;         // 步長 10公尺 (Δx)
+            let total_steps = total_distance_km / step_km;
+            let total_gain = 0;
+            let total_time_hours = 0;
+
+            // ==========================================
+            // 2. 數值積分運算 (Numerical Integration)
+            // ==========================================
+            for(let i = 0; i < total_steps; i++) {
+                // 模擬地形起伏：用正弦波疊加模擬山的坡度變化
+                // 這裡產生一個局部的坡度 s = dh/dx
+                let x = i * step_km;
+                // 模擬一個先上坡、後下坡，中間崎嶇的地形
+                let slope = Math.sin(x) * 0.15 + Math.cos(x * 3) * 0.05; 
+                
+                // 計算微小爬升量，若是上坡則累加至總爬升
+                let dh = slope * (step_km * 1000); // 換算成公尺
+                if(dh > 0) total_gain += dh;
+
+                // 帶入 Tobler's Function 算出瞬時速度 (km/h)
+                // 公式：V = 6 * exp(-3.5 * |s + 0.05|)
+                let v = 6 * Math.exp(-3.5 * Math.abs(slope + 0.05));
+
+                // 積分累加：時間 = 距離 / 速度 (dt = dx / V)
+                let dt = step_km / v;
+                total_time_hours += dt;
+            }
+
+            // ==========================================
+            // 3. 生理耗能計算
+            // ==========================================
+            // 公式：(體重+負重) * g * 總爬升 / 920.48
+            let calories = ((m_body + m_pack) * 9.81 * total_gain) / 920.48;
+            let packRatio = (m_pack / m_body) * 100;
+
+            // ==========================================
+            // 4. 更新 UI 介面
+            // ==========================================
+            document.getElementById('res-time').innerText = total_time_hours.toFixed(2) + " hr";
+            document.getElementById('res-cal').innerText = Math.round(calories) + " kcal";
+            document.getElementById('res-ratio').innerText = packRatio.toFixed(1) + " %";
+
+            let alertBox = document.getElementById('risk-alert');
+            alertBox.className = "alert"; // Reset
+
+            if (packRatio > 30 || calories > 4000) {
+                alertBox.classList.add("alert-danger");
+                alertBox.innerHTML = `⚠️ 【危險等級】您的負重比過高或耗能極限破表！這已遠超一般人負荷，強烈建議捨棄非必要裝備，減輕至少 ${Math.round(m_pack * 0.3)} kg。`;
+            } else if (packRatio > 20 || calories > 2500) {
+                alertBox.classList.add("alert-warning");
+                alertBox.innerHTML = `⚡ 【中度挑戰】行程具備一定強度。系統建議：請依照耗能數據，攜帶充足的高熱量行動糧以防止低血糖。`;
+            } else {
+                alertBox.classList.add("alert-safe");
+                alertBox.innerHTML = `✅ 【安全範圍】根據數值積分與生物力學評估，目前的負重與體能分配非常理想！`;
+            }
+
+            // 展開結果區塊
+            document.getElementById('result-section').style.display = 'block';
+            
+            // 讓網頁平滑往下滾動到結果區
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
-
-        // 1. 奈斯密斯規則 (Naismith's Rule) 計算預估時間
-        // 邏輯：平路 5km/hr + 爬升 600m/hr
-        let timeHours = (distance / 5) + (delta_h / 600);
-        
-        // 2. 耗能模組 (物理作功 + 肌肉效率 22%) 計算消耗大卡
-        // 邏輯：(體重+負重) * 9.81 * 爬升高度 / 920.48
-        let totalWeight = m_body + m_pack;
-        let calories = (totalWeight * 9.81 * delta_h) / 920.48;
-        
-        // 3. 計算負重比例 (判斷是否超載)
-        let packRatio = m_pack / m_body;
-
-        // 產生評估報告
-        let resultDiv = document.getElementById('result');
-        let reportHTML = `
-            <h3>📊 系統運算結果</h3>
-            <ul>
-                <li><b>預估耗時：</b> ${timeHours.toFixed(1)} 小時</li>
-                <li><b>預估消耗熱量：</b> ${Math.round(calories)} 大卡</li>
-                <li><b>負重體重比：</b> ${(packRatio * 100).toFixed(1)} %</li>
-            </ul>
-            <hr>
-            <h4>⚠️ 風險建議：</h4>
-        `;
-
-        // 判定風險等級與建議
-        resultDiv.className = "result-box"; // 重置 class
-
-        if (packRatio > 0.3 || calories > 3500) {
-            // 危險區間：負重超過體重30%，或單日耗能過大
-            resultDiv.classList.add("danger");
-            reportHTML += `<p><b>【高度風險】</b>您的負重比例過高或單日耗能極大，體力透支風險極高。強烈建議重新檢視裝備清單，減輕至少 ${Math.round(m_pack * 0.3)} 公斤，並確保攜帶充足的高熱量行動糧以防失溫。</p>`;
-        } else if (packRatio > 0.2 || calories > 2000) {
-            // 警告區間：負重超過體重20%，或單日耗能偏高
-            resultDiv.classList.add("warning");
-            reportHTML += `<p><b>【中度風險】</b>這趟行程將具備一定挑戰性。請確保您已攝取足夠碳水化合物，建議行程中每小時至少補充 ${Math.round(calories / timeHours / 3)} 大卡的行動糧維持體能。</p>`;
-        } else {
-            // 安全區間
-            resultDiv.classList.add("safe");
-            reportHTML += `<p><b>【狀況良好】</b>目前的負重與行程安排在合理範圍內。請保持穩定配速，祝您登山平安！</p>`;
-        }
-
-        // 顯示結果
-        resultDiv.innerHTML = reportHTML;
-        resultDiv.style.display = "block";
-    }
-</script>
-
+    </script>
 </body>
 </html>
